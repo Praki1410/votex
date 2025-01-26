@@ -242,24 +242,57 @@ app.post("/reset-password", async (req, res) => {
 
 // Protected Product Route
 app.get("/products", authenticateToken, (req, res) => {
-  const products = [
-    {
-      productId: "101",
-      productName: "Pro Yucca",
-      price: 299.99,
-      currency: "USD",
-      imageUrl:
-        "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Pro_Yucca_npzzbq.png",
-    },
-    {
-      productId: "102",
-      productName: "Magique",
-      price: 499.99,
-      currency: "USD",
-      imageUrl:
-        "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Magique_kurm3t.png",
-    },
-  ];
+  const products =[
+  {
+    "productId": "101",
+    "productName": "Pro Yucca",
+    "price": 299.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Pro_Yucca_npzzbq.png"
+  },
+  {
+    "productId": "102",
+    "productName": "Magique",
+    "price": 499.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Magique_kurm3t.png"
+  },
+  {
+    "productId": "103",
+    "productName": "Amonite",
+    "price": 149.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Amonite_02_pvvdmv.png"
+  },
+  {
+    "productId": "104",
+    "productName": "Vermectol",
+    "price": 89.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Vermectol_g3lx4d.png"
+  },
+  {
+    "productId": "105",
+    "productName": "Nano Cal",
+    "price": 249.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Nano_Cal_bjwqxg.png"
+  },
+  {
+    "productId": "106",
+    "productName": "Laxman Rekha",
+    "price": 199.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889940/Laxman_Rekha_ekazaq.png"
+  },
+  {
+    "productId": "107",
+    "productName": "Virotrip",
+    "price": 159.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Virotrip_gc0y7e.png"
+  }
+]
 
   res.status(200).json({
     message: "Product data fetched successfully",
