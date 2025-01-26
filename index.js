@@ -242,7 +242,7 @@ app.post("/reset-password", async (req, res) => {
 
 // Protected Product Route
 app.get("/products", authenticateToken, (req, res) => {
-  const products =[
+  const products = [
   {
     "productId": "101",
     "productName": "Pro Yucca",
@@ -291,6 +291,41 @@ app.get("/products", authenticateToken, (req, res) => {
     "price": 159.99,
     "currency": "USD",
     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Virotrip_gc0y7e.png"
+  },
+  {
+    "productId": "108",
+    "productName": "Vanguard",
+    "price": 349.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Vanguard_ohehub.jpg"
+  },
+  {
+    "productId": "109",
+    "productName": "Bindex",
+    "price": 269.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Bindex_bem0sm.png"
+  },
+  {
+    "productId": "110",
+    "productName": "Suraksha",
+    "price": 179.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Suraksha_jnpfah.png"
+  },
+  {
+    "productId": "111",
+    "productName": "Protamin C",
+    "price": 129.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Protamin_C_dlvi0p.png"
+  },
+  {
+    "productId": "112",
+    "productName": "E Moss",
+    "price": 219.99,
+    "currency": "USD",
+    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889936/E_Moss_ja2wcq.png"
   }
 ]
 
