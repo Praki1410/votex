@@ -348,7 +348,7 @@ app.post("/reset-password", async (req, res) => {
 //   });
 // });
 
-app.get("/products", async (req, res) => {
+app.get("/products", authenticateToken, async (req, res) => {
   try {
     const products = await Product.find(); // Fetches all fields by default
     res.status(200).json({
