@@ -48,6 +48,19 @@ const UserPhoneSchema = new mongoose.Schema({
 
 const UserPhone = mongoose.model("UserPhone", UserPhoneSchema);
 
+const ProductSchema = new mongoose.Schema({
+  productId: { type: String, required: true },
+  productName: { type: String, required: true },
+  price: { type: Number, required: true },
+  currency: { type: String, required: true },
+  imageUrl: { type: String, required: true },
+  description:{type: String ,required:true
+  }
+});
+const Product = mongoose.model("Product", ProductSchema);
+
+
+
 // Nodemailer Setup for Email OTP
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -241,99 +254,117 @@ app.post("/reset-password", async (req, res) => {
 });
 
 // Protected Product Route
-app.get("/products", authenticateToken, (req, res) => {
-  const products = [
-  {
-    "productId": "101",
-    "productName": "Pro Yucca",
-    "price": 299.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Pro_Yucca_npzzbq.png"
-  },
-  {
-    "productId": "102",
-    "productName": "Magique",
-    "price": 499.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Magique_kurm3t.png"
-  },
-  {
-    "productId": "103",
-    "productName": "Amonite",
-    "price": 149.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Amonite_02_pvvdmv.png"
-  },
-  {
-    "productId": "104",
-    "productName": "Vermectol",
-    "price": 89.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Vermectol_g3lx4d.png"
-  },
-  {
-    "productId": "105",
-    "productName": "Nano Cal",
-    "price": 249.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Nano_Cal_bjwqxg.png"
-  },
-  {
-    "productId": "106",
-    "productName": "Laxman Rekha",
-    "price": 199.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889940/Laxman_Rekha_ekazaq.png"
-  },
-  {
-    "productId": "107",
-    "productName": "Virotrip",
-    "price": 159.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Virotrip_gc0y7e.png"
-  },
-  {
-    "productId": "108",
-    "productName": "Vanguard",
-    "price": 349.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Vanguard_ohehub.jpg"
-  },
-  {
-    "productId": "109",
-    "productName": "Bindex",
-    "price": 269.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Bindex_bem0sm.png"
-  },
-  {
-    "productId": "110",
-    "productName": "Suraksha",
-    "price": 179.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Suraksha_jnpfah.png"
-  },
-  {
-    "productId": "111",
-    "productName": "Protamin C",
-    "price": 129.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Protamin_C_dlvi0p.png"
-  },
-  {
-    "productId": "112",
-    "productName": "E Moss",
-    "price": 219.99,
-    "currency": "USD",
-    "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889936/E_Moss_ja2wcq.png"
-  }
-]
+// app.get("/products", authenticateToken, (req, res) => {
+//   const products = [
+//   {
+//     "productId": "101",
+//     "productName": "Pro Yucca",
+//     "price": 299.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Pro_Yucca_npzzbq.png"
+//   },
+//   {
+//     "productId": "102",
+//     "productName": "Magique",
+//     "price": 499.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Magique_kurm3t.png"
+//   },
+//   {
+//     "productId": "103",
+//     "productName": "Amonite",
+//     "price": 149.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Amonite_02_pvvdmv.png"
+//   },
+//   {
+//     "productId": "104",
+//     "productName": "Vermectol",
+//     "price": 89.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Vermectol_g3lx4d.png"
+//   },
+//   {
+//     "productId": "105",
+//     "productName": "Nano Cal",
+//     "price": 249.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Nano_Cal_bjwqxg.png"
+//   },
+//   {
+//     "productId": "106",
+//     "productName": "Laxman Rekha",
+//     "price": 199.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889940/Laxman_Rekha_ekazaq.png"
+//   },
+//   {
+//     "productId": "107",
+//     "productName": "Virotrip",
+//     "price": 159.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Virotrip_gc0y7e.png"
+//   },
+//   {
+//     "productId": "108",
+//     "productName": "Vanguard",
+//     "price": 349.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Vanguard_ohehub.jpg"
+//   },
+//   {
+//     "productId": "109",
+//     "productName": "Bindex",
+//     "price": 269.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Bindex_bem0sm.png"
+//   },
+//   {
+//     "productId": "110",
+//     "productName": "Suraksha",
+//     "price": 179.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Suraksha_jnpfah.png"
+//   },
+//   {
+//     "productId": "111",
+//     "productName": "Protamin C",
+//     "price": 129.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Protamin_C_dlvi0p.png"
+//   },
+//   {
+//     "productId": "112",
+//     "productName": "E Moss",
+//     "price": 219.99,
+//     "currency": "USD",
+//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889936/E_Moss_ja2wcq.png"
+//   }
+// ]
 
-  res.status(200).json({
-    message: "Product data fetched successfully",
-    products,
-  });
+//   res.status(200).json({
+//     message: "Product data fetched successfully",
+//     products,
+//   });
+// });
+
+app.get("/products", async (req, res) => {
+  try {
+    const products = await Product.find(); // Fetches all fields by default
+    res.status(200).json({
+      message: "Product data fetched successfully",
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching products",
+      error: error.message,
+    });
+  }
 });
+
+
+
 
 // Start Server
 const PORT = process.env.PORT || 3000;
