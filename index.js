@@ -1,3 +1,5 @@
+
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -11,7 +13,7 @@ const crypto = require("crypto");
 dotenv.config();
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10kb' })); // Limit the size of the request body
 
 // In-memory object to temporarily store OTPs
 const userOtp = {};
@@ -21,6 +23,7 @@ mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    // poolSize: 10, // Increase connection pool size
   })
   .then(() => {
     console.log("Connected to MongoDB successfully! 🚀");
@@ -49,26 +52,15 @@ const UserPhoneSchema = new mongoose.Schema({
 const UserPhone = mongoose.model("UserPhone", UserPhoneSchema);
 
 const ProductSchema = new mongoose.Schema({
-  productId: { type: String, required: true },
+  productId: { type: String, required: true, index: true }, // Add index
   productName: { type: String, required: true },
   price: { type: Number, required: true },
   currency: { type: String, required: true },
   imageUrl: { type: String, required: true },
-  description:{type: String ,required:true
-  }
+  description: { type: String, required: true },
 });
+
 const Product = mongoose.model("Product", ProductSchema);
-
-
-
-// Nodemailer Setup for Email OTP
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 // Twilio Setup for Phone OTP
 const twilioClient = twilio(
@@ -79,7 +71,7 @@ const twilioClient = twilio(
 // JWT Helper
 const generateToken = (userId, userType) => {
   return jwt.sign({ userId, userType }, process.env.JWT_SECRET, {
-     expiresIn: "365d" ,
+    expiresIn: "365d",
   });
 };
 
@@ -191,28 +183,23 @@ app.post("/verify-otp", async (req, res) => {
   }
 });
 
-
 app.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 
   try {
-    
     const user = await UserEmail.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found!" });
     }
 
-  
     const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-   
     user.resetToken = resetToken;
     user.resetTokenExpiration = Date.now() + 3600000; // 1 hour from now
     await user.save();
 
-    
     res.status(200).json({
       message: "Password reset token generated. Please use it to reset your password.",
       resetToken, // This would be sent securely (via email)
@@ -223,24 +210,19 @@ app.post("/forgot-password", async (req, res) => {
   }
 });
 
-
 app.post("/reset-password", async (req, res) => {
   const { resetToken, newPassword } = req.body;
 
   try {
-   
     const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-
 
     const user = await UserEmail.findOne({ _id: decoded.userId });
     if (!user || user.resetToken !== resetToken || user.resetTokenExpiration < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired token." });
     }
 
-
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-   
     user.password = hashedPassword;
     user.resetToken = undefined;
     user.resetTokenExpiration = undefined;
@@ -253,118 +235,28 @@ app.post("/reset-password", async (req, res) => {
   }
 });
 
-// Protected Product Route
-// app.get("/products", authenticateToken, (req, res) => {
-//   const products = [
-//   {
-//     "productId": "101",
-//     "productName": "Pro Yucca",
-//     "price": 299.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Pro_Yucca_npzzbq.png"
-//   },
-//   {
-//     "productId": "102",
-//     "productName": "Magique",
-//     "price": 499.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889946/Magique_kurm3t.png"
-//   },
-//   {
-//     "productId": "103",
-//     "productName": "Amonite",
-//     "price": 149.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Amonite_02_pvvdmv.png"
-//   },
-//   {
-//     "productId": "104",
-//     "productName": "Vermectol",
-//     "price": 89.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Vermectol_g3lx4d.png"
-//   },
-//   {
-//     "productId": "105",
-//     "productName": "Nano Cal",
-//     "price": 249.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889941/Nano_Cal_bjwqxg.png"
-//   },
-//   {
-//     "productId": "106",
-//     "productName": "Laxman Rekha",
-//     "price": 199.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889940/Laxman_Rekha_ekazaq.png"
-//   },
-//   {
-//     "productId": "107",
-//     "productName": "Virotrip",
-//     "price": 159.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Virotrip_gc0y7e.png"
-//   },
-//   {
-//     "productId": "108",
-//     "productName": "Vanguard",
-//     "price": 349.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Vanguard_ohehub.jpg"
-//   },
-//   {
-//     "productId": "109",
-//     "productName": "Bindex",
-//     "price": 269.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Bindex_bem0sm.png"
-//   },
-//   {
-//     "productId": "110",
-//     "productName": "Suraksha",
-//     "price": 179.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889933/Suraksha_jnpfah.png"
-//   },
-//   {
-//     "productId": "111",
-//     "productName": "Protamin C",
-//     "price": 129.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889937/Protamin_C_dlvi0p.png"
-//   },
-//   {
-//     "productId": "112",
-//     "productName": "E Moss",
-//     "price": 219.99,
-//     "currency": "USD",
-//     "imageUrl": "https://res.cloudinary.com/ddhslwi0k/image/upload/v1737889936/E_Moss_ja2wcq.png"
-//   }
-// ]
-
-//   res.status(200).json({
-//     message: "Product data fetched successfully",
-//     products,
-//   });
-// });
-
 app.get("/products", authenticateToken, async (req, res) => {
   try {
-    const products = await Product.find(); // Fetches all fields by default
+    const { page = 1, limit = 10 } = req.query; // Default pagination values
+
+    const products = await Product.find()
+      .select("-__v") // Exclude unnecessary fields like __v
+      .skip((page - 1) * limit) // Skip records for pagination
+      .limit(Number(limit)) // Limit results per page
+      .lean(); // Convert to plain JavaScript objects for better performance
+
     res.status(200).json({
       message: "Product data fetched successfully",
       products,
     });
   } catch (error) {
+    console.error("Error fetching products:", error); // Log error for debugging
     res.status(500).json({
       message: "Error fetching products",
       error: error.message,
     });
   }
 });
-
-
-
 
 // Start Server
 const PORT = process.env.PORT || 3000;
