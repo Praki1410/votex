@@ -235,22 +235,17 @@ app.post("/reset-password", async (req, res) => {
   }
 });
 
+
 app.get("/products", async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query; // Default pagination values
-
-    const products = await Product.find()
-      .select("-__v") // Exclude unnecessary fields like __v
-      .skip((page - 1) * limit) // Skip records for pagination
-      .limit(Number(limit)) // Limit results per page
-      .lean(); // Convert to plain JavaScript objects for better performance
+    const products = await Product.find().select("-__v").lean();
 
     res.status(200).json({
       message: "Product data fetched successfully",
       products,
     });
   } catch (error) {
-    console.error("Error fetching products:", error); // Log error for debugging
+    console.error("Error fetching products:", error);
     res.status(500).json({
       message: "Error fetching products",
       error: error.message,
