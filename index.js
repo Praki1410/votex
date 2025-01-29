@@ -66,7 +66,7 @@ const twilioClient = twilio(
 // JWT Helper
 const generateToken = (userId, userType) => {
   return jwt.sign({ userId, userType }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
+     expiresIn: "365d" ,
   });
 };
 
