@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
+const placeorder=require("./routes/orderRoutes")
+
 
 dotenv.config();
 
@@ -16,6 +18,7 @@ connectDB();
 // Routes
 app.use("/auth", authRoutes);
 app.use("/", productRoutes);
+app.use("/order",placeorder)
 
 // Start Server
 const PORT = process.env.PORT || 3000;
