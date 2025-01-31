@@ -1,30 +1,42 @@
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const UserEmail = require("../models/userEmail");
 const UserPhone = require("../models/userPhone");
 const twilio = require("twilio");
 const dotenv = require("dotenv");
+const nodemailer = require("nodemailer");
 
 dotenv.config();
 
+// Twilio Configuration
 const twilioClient = twilio(
   process.env.TWILIO_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 
-const userOtp = {}; // In-memory storage for OTPs
+// Nodemailer Configuration
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
+// In-memory storage for OTPs
+const userOtp = {};
 
-
-// Updated generateToken function to include userId, userType, and email
-const generateToken = (userId,  email ) => {
-  return jwt.sign({ userId, email  }, process.env.JWT_SECRET, {
+// Generate JWT Token
+const generateToken = (userId, email) => {
+  const token = jwt.sign({ userId, email }, process.env.JWT_SECRET, {
     expiresIn: "365d",
   });
+  console.log("🔑 Token generated:", token); // Log the generated token
+  return token;
 };
-
-
-
 
 // Email Signup
 const signupEmail = async (req, res) => {
@@ -49,8 +61,7 @@ const signupEmail = async (req, res) => {
   }
 };
 
-
-
+// Email Login
 const loginEmail = async (req, res) => {
   const { email, password } = req.body;
 
@@ -60,14 +71,14 @@ const loginEmail = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password!" });
     }
 
-    // Now passing userId, email, and userType to generate the token
-    const token = generateToken(user._id, user.email, "email");  // Pass the email here
+    // Generate JWT Token
+    const token = generateToken(user._id, user.email);
+    console.log("🔑 Token sent to client:", token); // Log the token sent to the client
     res.status(200).json({ message: "Login successful!", token });
   } catch (error) {
     res.status(500).json({ message: "Error during login", error: error.message });
   }
 };
-
 
 // Phone Login (OTP)
 const loginPhone = async (req, res) => {
@@ -170,6 +181,133 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// Send SMS Notification
+const sendSmsNotification = async (mobile, message) => {
+  try {
+    await twilioClient.messages.create({
+      body: message,
+      from: process.env.TWILIO_PHONE_NUMBER,  // Your Twilio phone number
+      to: mobile,  // User's mobile number
+    });
+    console.log(`✅ SMS sent to: ${mobile}`);
+  } catch (error) {
+    console.error("❌ Error sending SMS:", error);
+    throw new Error("Failed to send SMS notification.");
+  }
+};
+
+// Send Email Notification
+const sendEmailNotification = async (email, subject, message) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: subject,
+      html: `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              .email-container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
+              .email-header { font-size: 14px; font-weight: bold; color: #333; }
+              .email-body { font-size: 16px; color: #555; }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <div class="email-header">${subject}</div>
+              <div class="email-body">${message}</div>
+            </div>
+          </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent to: ${email}`);
+  } catch (error) {
+    console.error("❌ Error sending email:", error);
+    throw new Error("Failed to send email notification.");
+  }
+};
+
+// Get Email from Token
+const getEmailFromToken = (req) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    console.error("❌ No authorization header found");
+    throw new Error("Unauthorized! No token provided.");
+  }
+
+  const token = authHeader.split(" ")[1]; // Extract token from "Bearer <token>"
+  if (!token) {
+    console.error("❌ Token not found in authorization header");
+    throw new Error("Unauthorized! Token not found in header.");
+  }
+
+  console.log("🔍 Extracted Token:", token); // Log the extracted token
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("🔍 Decoded Token:", decoded); // Log the decoded token
+
+    if (!decoded.email) {
+      console.error("❌ Email not found in decoded token");
+      throw new Error("Invalid token. Email not found.");
+    }
+
+    return decoded.email;
+  } catch (error) {
+    console.error("❌ Error verifying token:", error); // Log the error
+    throw new Error("Invalid token.");
+  }
+};
+
+// Book Consultation
+const bookConsultation = async (req, res) => {
+  try {
+    const email = getEmailFromToken(req);
+    await sendEmailNotification(
+      email,
+      "Your Consulting Booking is Confirmed ✅",
+      "Thank you for booking a consultation! Your appointment has been successfully scheduled."
+    );
+    res.status(200).json({ message: "✅ Consultation booked successfully. Confirmation email sent!" });
+  } catch (error) {
+    console.error("❌ Error booking consultation:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Place Order
+const placeOrder = async (req, res) => {
+  try {
+    const email = getEmailFromToken(req);
+
+    // Send Email Notification
+    await sendEmailNotification(
+      email,
+      "Your Order is Confirmed ✅",
+      "Thank you for your order! Your order has been successfully placed."
+    );
+
+    // Send SMS Notification (you can get the mobile number from the user model or the request body)
+    const mobile = req.body.mobile; // Assuming the mobile number is sent in the request body
+    if (mobile) {
+      await sendSmsNotification(
+        mobile,
+        "Your order is confirmed. Thank you for your order! Your order has been successfully placed."
+      );
+    }
+
+    res.status(200).json({ message: "✅ Order placed successfully. Confirmation email and SMS sent!" });
+  } catch (error) {
+    console.error("❌ Error placing order:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Export all functions
 module.exports = {
   signupEmail,
   loginEmail,
@@ -177,4 +315,6 @@ module.exports = {
   verifyOtp,
   forgotPassword,
   resetPassword,
+  bookConsultation,
+  placeOrder,
 };
