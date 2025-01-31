@@ -18,7 +18,7 @@ connectDB();
 // Routes
 app.use("/auth", authRoutes);
 app.use("/", productRoutes);
-app.use("/order",placeorder)
+app.use("/booking",placeorder)
 
 // Start Server
 const PORT = process.env.PORT || 3000;
